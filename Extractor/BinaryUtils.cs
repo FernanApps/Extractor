@@ -14,16 +14,18 @@ namespace Extractor
         /// </summary>
         /// <param name="reader">The <see cref="BinaryReader"/> to read from.</param>
         /// <param name="pattern">The byte sequence to search for.</param>
+        /// <param name="max">The maximum number of bytes to search from the end.</param>
         /// <returns>The offset from the start of the last occurrence of the sequence in the stream,
         /// or -1 if the sequence was not found.</returns>
-        public static long FindBytesBackwards(BinaryReader reader, byte[] pattern)
+        public static long FindBytesBackwards(BinaryReader reader, byte[] pattern, uint max = 50_000_800)
         {
-            const int bufferSize = 8192;
+            uint bufferSize = Math.Min(max, 8192u);
             var buffer = new byte[bufferSize];
 
             long startPos = reader.BaseStream.Length < bufferSize 
                 ? 0 
                 : reader.BaseStream.Length - bufferSize;
+            long endPos = Math.Max(0, reader.BaseStream.Length - max);
             int seqIdx = pattern.Length - 1;
             long offset = -1;
 
@@ -50,8 +52,8 @@ namespace Extractor
                     }
                 }
 
-                startPos = Math.Max(0, startPos - bufferSize);
-            } while (startPos > 0 && offset < 0);
+                startPos = Math.Max(endPos, startPos - bufferSize);
+            } while (startPos > endPos && offset < 0);
             return offset;
         }
 
