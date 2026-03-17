@@ -290,11 +290,23 @@ namespace Extractor
             if (hasIdentifiedJunk)
                 return;
 
+            // Kick out entries with offsets greater than the size of the archive.
+            foreach (var (_, entry) in Reader.Entries)
+            {
+                if (entry.Offset > (ulong)Reader.BaseReader.BaseStream.Length)
+                {
+                    MarkAsConfirmedJunk(entry);
+                }
+            }
+
             // Find all entries with duplicate offsets and group them by offset.
             var visitedOffsets = new Dictionary<ulong, IEntry>();
             var junk = new Dictionary<ulong, List<IEntry>>();
             foreach (var (_, entry) in Reader.Entries)
             {
+                if (junkEntries.ContainsKey(entry.Hash))
+                    continue;
+
                 if (!visitedOffsets.TryAdd(entry.Offset, entry))
                 {
                     if (!junk.TryGetValue(entry.Offset, out var list))
