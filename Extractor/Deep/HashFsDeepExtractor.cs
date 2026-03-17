@@ -147,10 +147,23 @@ namespace Extractor.Deep
                     continue;
                 }
 
-                var fileBuffer = Reader.Extract(entry, "")[0];
+                var offsetHexStr = entry.Hash.ToString("x16");
+
+                byte[] fileBuffer;
+                try
+                {
+                    fileBuffer = Reader.Extract(entry, "")[0];
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Uanble to dump {offsetHexStr}: {ex.Message}");
+                    numFailed++;
+                    continue;
+                }
+
                 var fileType = FileTypeHelper.Infer(fileBuffer);
                 var extension = FileTypeHelper.FileTypeToExtension(fileType);
-                var fileName = entry.Hash.ToString("x16") + extension;
+                var fileName = offsetHexStr + extension;
                 var outputPath = Path.Combine(outputDir, fileName);
                 Console.WriteLine($"Dumping {fileName} ...");
                 if (!Overwrite && File.Exists(outputPath))
