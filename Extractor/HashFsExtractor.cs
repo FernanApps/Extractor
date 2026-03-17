@@ -474,6 +474,11 @@ namespace Extractor
                 }
 
                 var startOffset = (long)entry.Offset + offsets[0];
+                if (startOffset < 0 || startOffset > Reader.BaseReader.BaseStream.Length)
+                {
+                    continue;
+                }
+
                 Reader.BaseReader.BaseStream.Position = startOffset;
                 Reader.BaseReader.BaseStream.ReadExactly(buffer, 0, bufferSize);
                 zlibHeaders.Clear();
